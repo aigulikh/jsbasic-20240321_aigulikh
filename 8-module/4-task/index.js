@@ -13,23 +13,51 @@ export default class Cart {
   }
 
   addProduct(product) {
-    // СКОПИРУЙТЕ СЮДЯ СВОЙ КОД
+    //вызов без аргумента / с нулевым аргументом
+    if (!product || product === null) {
+      return;
+    }
+    //найти позицию продукта в корзине
+    let prodInd = this.cartItems.findIndex(cartItem => cartItem.product.id === product.id);
+
+    if (prodInd >= 0) {
+      this.cartItems[prodInd].count++;
+    } else {
+      this.cartItems.push({product, count: 1});
+    }
+
+    this.onProductUpdate(this.cartItems[prodInd]);
   }
 
   updateProductCount(productId, amount) {
-    // СКОПИРУЙТЕ СЮДЯ СВОЙ КОД
+
+  //найти позицию продукта в корзине
+    let prodInd = this.cartItems.findIndex(cartItem => cartItem.product.id === productId);
+
+    if (prodInd < 0) {
+      return;
+    }
+
+    this.cartItems[prodInd].count += amount;
+
+    if (this.cartItems[prodInd].count === 0) {
+      //удалить 1 элемент с найденной позицией
+      this.cartItems.splice(prodInd, 1);
+    } else {
+      this.onProductUpdate(this.cartItems[prodInd]);
+    }
   }
 
   isEmpty() {
-    // СКОПИРУЙТЕ СЮДЯ СВОЙ КОД
+    return this.cartItems.length === 0;
   }
 
   getTotalCount() {
-    // СКОПИРУЙТЕ СЮДЯ СВОЙ КОД
+    return this.cartItems.reduce((accumulator, currentValue) => accumulator + currentValue.count, 0);
   }
 
   getTotalPrice() {
-    // СКОПИРУЙТЕ СЮДЯ СВОЙ КОД
+    return this.cartItems.reduce((accumulator, currentValue) => accumulator + currentValue.count * currentValue.product.price , 0)
   }
 
   renderProduct(product, count) {
@@ -84,8 +112,18 @@ export default class Cart {
   }
 
   renderModal() {
-    // ...ваш код
+    this.modal = new Modal();
+    document.body.append(this.modal.elem);
+    this.modal.setTitle('Your order');
+    this.modal.setBody(this.createCartBodyElement());
+
+    this.productElements = document.querySelectorAll('.cart-product');
+    this.subminBtnElement = document.querySelector('.cart-buttons__button.btn-group__button.button');
+    this.formElement = document.querySelector('.cart-form');
+    this.modalBody = this.modal.bodyElement;
+    this.createCartListeners();
   }
+  
 
   onProductUpdate(cartItem) {
     // ...ваш код
@@ -98,7 +136,8 @@ export default class Cart {
   };
 
   addEventListeners() {
-    this.cartIcon.elem.onclick = () => this.renderModal();
+    this.productElements.forEach(product => product.addEventListener('click', this.productElementClickHandler));
+    this.formElement.addEventListener('submit', this.onSubmit);
   }
 }
 
